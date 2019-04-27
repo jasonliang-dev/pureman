@@ -1,11 +1,11 @@
-import System.Random (randomRIO)
-import qualified Data.Set as Set
-import Data.Char (toLower)
-import Control.Monad (when)
+import           Control.Monad (when)
+import           Data.Char     (toLower)
+import qualified Data.Set      as Set
+import           System.Random (randomRIO)
 
-data Model = 
-    Model 
-        { word :: String
+data Model =
+    Model
+        { word    :: String
         , guesses :: Set.Set Char
         } deriving (Show)
 
@@ -17,7 +17,7 @@ initialModel = Model { word = "", guesses = Set.empty }
 update :: Msg -> Model -> Model
 update msg model =
     case msg of
-        SetWord word -> 
+        SetWord word ->
             model { word = word }
         AddGuess letter ->
             model { guesses = Set.insert letter $ guesses model }
@@ -26,7 +26,7 @@ displayWord :: Set.Set Char -> String -> String
 displayWord guesses = foldl (\acc x -> acc ++ if toLower x `elem` guesses then [x] else "_") ""
 
 display :: Int -> Set.Set Char -> String -> String
-display maxGuesses guesses word = 
+display maxGuesses guesses word =
     "Letters guessed:" ++ guessContents guesses ++ "\n\n"
     ++ displayWord guesses word ++ "\n\n"
     ++ show (maxGuesses - length guesses) ++ " guesses left"
@@ -46,12 +46,10 @@ game model = do
         game $ update (AddGuess $ toLower letter) model
 
 pick :: [a] -> IO a
-pick xs = fmap (xs !!) $ randomRIO (0, length xs - 1)
+pick xs = (xs !!) <$> randomRIO (0, length xs - 1)
 
 main :: IO ()
 main = do
-    text <- readFile "words.txt"
-    word <- pick $ lines text
-    print word
+    word <- lines <$> readFile "words.txt" >>= pick
     game $ update (SetWord word) initialModel
-    putStrLn $ "The word was " ++ word ++ "!"
+    putStrLn $ "\nThe word was " ++ word ++ "!"
