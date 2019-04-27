@@ -40,11 +40,14 @@ display maxGuessCount xs str =
     "Letters guessed:" ++ guessContents xs ++ "\n\n"
     ++ displayWord xs str ++ "\n\n"
     ++ show (maxGuessCount - wrongGuesses xs str) ++ " guesses left"
-    where
-        guessContents = foldl (\acc x -> acc ++ " " ++ [x]) ""
+    where guessContents = foldl (\acc x -> acc ++ " " ++ [x]) ""
 
 maxGuesses :: Int
 maxGuesses = 12
+
+safeHead :: [a] -> Maybe a
+safeHead []    = Nothing
+safeHead (x:_) = Just x
 
 game :: Model -> IO ()
 game model = do
@@ -55,8 +58,10 @@ game model = do
         putStrLn toPrint
         putStr "Guess a letter: "
         hFlush stdout
-        letter <- getChar
-        game $ update (AddGuess $ toLower letter) model
+        letter <- safeHead <$> getLine
+        game $ case letter of
+            Just x -> update (AddGuess $ toLower x) model
+            Nothing -> model
 
 pick :: [a] -> IO a
 pick xs = (xs !!) <$> randomRIO (0, length xs - 1)
